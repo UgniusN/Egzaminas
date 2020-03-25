@@ -6,32 +6,35 @@ public class BankSystem {
     BankInterface bankInterface = new BankInterface();
     Scanner scanner = new Scanner(System.in);
     DbManager dbManager = new DbManager();
+    private BankAccountNumberGenerator bankAccountNumberGenerator = new BankAccountNumberGenerator();
     public void start() {
         bankInterface.printStartMenu();
-        switch(scanner.nextInt()) {
-            case 1:
-                login();
-                operations();
-                break;
-            case 2:
-                register();
-                break;
-        }
-
-
+        boolean cycleStatus = true;
+        while(cycleStatus)
+            switch(scanner.nextInt()) {
+                case 1:
+                    login();
+                    System.out.println("Successfuly logged in!");
+                    operations();
+                    break;
+                case 2:
+                    register();
+                    System.out.println("Registration complete!");
+            }
     }
 
 
     public void register() {
         System.out.println("Enter username: ");
+        scanner.nextLine();
         String username = scanner.nextLine();
         for( ; ; ) {
             System.out.println("Enter password: ");
             String password = scanner.nextLine();
             System.out.println("Repeat password");
             String repeatedPassword = scanner.nextLine();
-            if(password == repeatedPassword) {
-                dbManager.createUser(username,password);
+            if(password.equals( repeatedPassword)) {
+                createEndUser(username,password);
                 break;
             }
             else {
@@ -63,4 +66,19 @@ public class BankSystem {
                 break;
         }
     }
+
+    private void createEndUser(String username, String password) {
+        boolean cycleStatus = true;
+        String accountNumber;
+        dbManager.createUser(username,password);
+        Integer id = dbManager.getUserIdByUsername(username);
+        while(cycleStatus) {
+            accountNumber = bankAccountNumberGenerator.generateNumber();
+            if(dbManager.checkIfBankAccountExists(accountNumber)) {
+                dbManager.createBankAccount(accountNumber,id);
+                cycleStatus = false;
+            }
+        }
+    }
+
 }
